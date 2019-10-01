@@ -1,4 +1,6 @@
 .vscode/
 
+//content.txt
+
 **/__pycache__/
 **/*.pyc
