@@ -1,6 +1,6 @@
 .vscode/
 
-//content.txt
+content.txt
 
 **/__pycache__/
 **/*.pyc
