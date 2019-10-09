@@ -1,6 +1,12 @@
-from workers.lexers import simpleLexer
-Lexer = simpleLexer.SimpleLexer
+import re
 
-l = Lexer()
+f = open("content.txt", 'r')
 
-l.next()
+content = f.read().split('\n')
+
+doc_content = [r.group(1)
+               for r in [re.match(r'///\s*(?:)\s*', c)
+                         for c in content]
+               if r]
+
+print(doc_content)
