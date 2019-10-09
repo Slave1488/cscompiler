@@ -1,6 +1,7 @@
 .vscode/
 
 content.txt
+xml.txt
 
 **/__pycache__/
 **/*.pyc
