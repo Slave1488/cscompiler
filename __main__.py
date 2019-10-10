@@ -11,6 +11,7 @@ doc_content = [r.group(1)
 
 doc_content = [w
                for s in doc_content
-               for w in re.findall(r'(<.*?>)', s)]
+               for w in re.findall(r'(?:<.*?>)|(?:[^<\s][^<]*[^<\s])|(?:[^<\s])', s)]
 
-print(doc_content)
+for c in doc_content:
+    print(c)
