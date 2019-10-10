@@ -6,8 +6,15 @@ content = f.read()
 
 need_data = re.findall(r'([ \t\r\f\v]*///.*(?:\s*///.*)+)\n(.*)', content)
 
-for t in need_data:
-    print("{0}\n-----------------------------------\n{1}\n".format(t[0], t[1]))
+temp = [(re.findall(r'(?:<.*?>)|(?:[^<\s/][^<\n/]*[^<\s])|(?:[^<\s/])', d[0]), re.search(r'/S.*/S', d[1]))
+        for d in need_data]
+
+check = False
+if check:
+    print(temp)
+else:
+    for s in temp:
+        print(s)
 
 content = content.split('\n')
 
