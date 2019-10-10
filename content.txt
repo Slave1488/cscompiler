@@ -1,5 +1,4 @@
-namespace N
-{
+namespace N{
     /// <summary>
     /// Enter description here for class X. 
     /// ID string generated is "T:N.X". 
