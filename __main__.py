@@ -1,3 +1,4 @@
+import sys
 import re
 
 
@@ -20,35 +21,85 @@ f = open("content.txt", 'r')
 
 content = f.read()
 
-namespace = re.search(r'namespace ([^{/s]*)', content).group(1)
+namespace = ('N', re.search(r'namespace ([^{\s]*)', content).group(1)), []
 
-need_data = [(parse_line(re.search(r'(?:[^\s{;=][^{;=]*[^\s{;=])|(?:[^\s{;=])',
-                                   d[1]).group()),
-              re.findall(r'(?:<.*?>)|(?:[^<\s/][^<\n/]*[^<\s])|(?:[^<\s/])',
-                         d[0]))
-             for d in re.findall(r'([ \t\r\f\v]*///.*(?:\s*///.*)+)\n(.*)',
-                                 content)]
+need_data = [namespace] + [
+    (parse_line(re.search(r'(?:[^\s{;=][^{;=]*[^\s{;=])|(?:[^\s{;=])',
+                          d[1]).group()),
+     re.findall(r'(?:<.*?>)|(?:[^<\s/][^<\n/]*[^<\s])|(?:[^<\s/])',
+                d[0]))
+    for d in re.findall(r'([ \t\r\f\v]*///.*(?:\s*///.*)+)\n(.*)',
+                        content)]
 
 
-class Name:
-    def __init__(self, sym, name):
-        self._sym = sym
+class Attribute:
+    def __init__(self, name, value):
         self._name = name
-        self._parent = None
-
-    def get_name(self):
-        return "{}.{}".format(self._parent.get_name(),
-                              self._name) if self._parent else self._name
+        self._value = value
 
     def __str__(self):
-        return "{}:{}".format(self._sym, self.get_name())
+        return "{0}=\"{1}\"".format(self._name, self._value)
 
 
 class Tag:
     def __init__(self, name):
         self._name = name
+        self._attributes = []
         self._content = []
 
+    def add_content(self, content):
+        self._content.append(content)
+
+    def add_attribute(self, attribute):
+        self._attributes.append(attribute)
+
     def __str__(self):
-        return "<{0}>{1}\n</{0}>".format(self._name,
-                                         '\n'.join(map(str, self._content)))
+        return "<{0} {2}>\n{1}\n</{0}>".format(
+            self._name,
+            '\n'.join(map(str, self._content)),
+            ' '.join(map(str, self._attributes)))
+
+
+class MemberGen:
+    def __init__(self):
+        self._namespace = None
+        self._class = None
+
+    def create_members(self, data):
+        res = []
+        for d in data:
+            t = Tag("member")
+            for c in d[1]:
+                t.add_content(c)
+            val = "{}:".format(d[0][0])
+            if self._namespace:
+                val += self._namespace + '.'
+                if self._class:
+                    val += self._class + '.'
+                    temp = re.compile('^{}(?=[(\s]|$)'.format(self._class))
+                    if re.match(temp, d[0][1]):
+                        val += re.sub(temp, '#ctor', d[0][1])
+                    else:
+                        val += d[0][1]
+                elif d[0][0] == 'T':
+                    self._class = d[0][1]
+                    val += d[0][1]
+                else:
+                    print('MAGIC_ERROR')
+                    sys.exit(1)
+            elif d[0][0] == 'N':
+                self._namespace = d[0][1]
+                continue
+            else:
+                print('MAGIC_ERROR')
+                sys.exit(1)
+            t.add_attribute(Attribute('name', val))
+            res.append(t)
+        return res
+
+mg = MemberGen()
+
+members = Tag("members")
+members._content = mg.create_members(need_data)
+
+print(members)
