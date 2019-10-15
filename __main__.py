@@ -1,5 +1,6 @@
-import operator
 import sys
+from functools import reduce
+import operator
 import re
 
 
@@ -39,8 +40,16 @@ class Attribute:
         self._name = name
         self._value = value
 
-    def __str__(self):
-        return " {0}=\"{1}\"".format(self._name, self._value)
+    def to_string(self):
+        return "{0}=\"{1}\"".format(self._name, self._value)
+
+
+class TextContent:
+    def __init__(self, text):
+        self._text = text
+
+    def to_string(self):
+        return self._text
 
 
 class Tag:
@@ -52,11 +61,24 @@ class Tag:
     def add_content(self, content):
         self._content.append(content)
 
+    def add_tag(self, tag):
+        self.add_content(tag)
+
+    def add_text(self, text):
+        self.add_content(TextContent(text))
+
     def add_attribute(self, attribute):
         self._attributes.append(attribute)
 
     def to_string(self, *, file=sys.stdout):
-        returnz
+        return "<{name}{attr}>{cont}\n</{name}>".format(
+            name=self._name,
+            attr=reduce(operator.add,
+                        map(lambda a: ' ' + a.to_string(), self._attributes),
+                        ""),
+            cont=reduce(operator.add,
+                        map(lambda c: '\n' + c.to_string(), self._content),
+                        "").replace('\n', '\n\t') or '\n')
 
 
 class MemberGen:
@@ -69,7 +91,7 @@ class MemberGen:
         for d in data:
             t = Tag("member")
             for c in d[1]:
-                t.add_content(c)
+                t.add_text(c)
             val = "{}:".format(d[0][0])
             if self._namespace:
                 val += self._namespace + '.'
@@ -102,4 +124,5 @@ mg = MemberGen()
 members = Tag("members")
 members._content = mg.create_members(need_data)
 
-print(members)
+
+print(members.to_string())
