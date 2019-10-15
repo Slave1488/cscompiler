@@ -1,3 +1,4 @@
+import operator
 import sys
 import re
 
@@ -16,6 +17,7 @@ def parse_line(line):
     else:
         sym = 'F'
     return sym, name
+
 
 f = open("content.txt", 'r')
 
@@ -38,7 +40,7 @@ class Attribute:
         self._value = value
 
     def __str__(self):
-        return "{0}=\"{1}\"".format(self._name, self._value)
+        return " {0}=\"{1}\"".format(self._name, self._value)
 
 
 class Tag:
@@ -53,11 +55,8 @@ class Tag:
     def add_attribute(self, attribute):
         self._attributes.append(attribute)
 
-    def __str__(self):
-        return "<{0} {2}>\n{1}\n</{0}>".format(
-            self._name,
-            '\n'.join(map(str, self._content)),
-            ' '.join(map(str, self._attributes)))
+    def to_string(self, *, file=sys.stdout):
+        returnz
 
 
 class MemberGen:
@@ -76,7 +75,7 @@ class MemberGen:
                 val += self._namespace + '.'
                 if self._class:
                     val += self._class + '.'
-                    temp = re.compile('^{}(?=[(\s]|$)'.format(self._class))
+                    temp = re.compile('^{}(?=[\s(]|$)'.format(self._class))
                     if re.match(temp, d[0][1]):
                         val += re.sub(temp, '#ctor', d[0][1])
                     else:
@@ -96,6 +95,7 @@ class MemberGen:
             t.add_attribute(Attribute('name', val))
             res.append(t)
         return res
+
 
 mg = MemberGen()
 
